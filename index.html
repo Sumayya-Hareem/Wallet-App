@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wallet</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#0f5d63">
@@ -112,6 +117,8 @@ textarea.code{width:100%;min-height:110px;background:var(--bg);border:1px solid 
 .empty{color:var(--muted);text-align:center;padding:24px 8px}
 .warnbox{background:var(--neg-soft);color:var(--neg);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
 </style>
+</head>
+<body>
 
 <div class="app" id="view"></div>
 <button class="fab" id="fab" data-act="add" aria-label="Add entry">+</button>
@@ -522,3 +529,6 @@ render();
 window.__wallet={get S(){return S},balance:balance,stats:stats,render:render,A:A,ui:ui};
 })();
 </script>
+
+</body>
+</html>
