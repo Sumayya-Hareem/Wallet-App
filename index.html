@@ -295,12 +295,12 @@ function vDebts(){
   var h='<div class="top"><h1>Debts</h1><span>'+(k==='owed'?'People who owe you':'Money you borrowed')+'</span></div>'+seg+
    '<button class="btn primary block" data-act="new-debt">'+(k==='owed'?'Add person who owes you':'Add money I borrowed')+'</button>';
   if(!list.length)return h+'<div class="empty">Nothing here yet.</div>';
-  return h+list.map(function(d){
+  var card=function(d){
     var paid=debtPaid(d),rem=d.total-paid,pct=d.total>0?Math.max(0,Math.min(100,Math.round(paid*100/d.total))):0;
     var pays=d.payments.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){
       return '<div class="row small"><span class="l">'+dfmt(p.date)+'</span><span class="r num">'+fmt(p.amount)+' <button class="iconbtn" style="display:inline-grid;vertical-align:middle" data-act="del-pay" data-id="'+d.id+'" data-pid="'+p.id+'" aria-label="Delete payment">'+IC.bin+'</button></span></div>';
     }).join('')||'<div class="small muted">No payments yet.</div>';
-    return '<div class="panel"><div class="row" style="padding-top:0"><h3 class="l" style="margin:0">'+esc(d.name)+'</h3><button class="iconbtn" data-act="del-debt" data-id="'+d.id+'" aria-label="Delete this debt">'+IC.bin+'</button></div>'+
+    return '<div class="panel"><div class="row" style="padding-top:0"><h3 class="l" style="margin:0">'+esc(d.name)+(paid>=d.total?' <span class="chip transfer">Settled</span>':'')+'</h3><button class="iconbtn" data-act="del-debt" data-id="'+d.id+'" aria-label="Delete this debt">'+IC.bin+'</button></div>'+
      '<div class="grid2" style="margin-top:6px"><div><div class="small muted">Total</div><div class="num" style="font-weight:600">'+fmt(d.total)+'</div></div><div><div class="small muted">Paid so far</div><div class="num" style="font-weight:600">'+fmt(paid)+'</div></div></div>'+
      '<div class="row"><span class="muted">Remaining</span><span class="num" style="font-family:var(--display);font-weight:700;font-size:20px">'+fmt(rem)+'</span></div>'+
      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
@@ -308,7 +308,16 @@ function vDebts(){
      '<div class="grid2"><div class="field" style="margin:0"><label for="amt-'+d.id+'">Amount</label><input id="amt-'+d.id+'" inputmode="numeric" placeholder="0"></div><div class="field" style="margin:0"><label for="dt-'+d.id+'">Date</label><input id="dt-'+d.id+'" type="date" value="'+today()+'"></div></div>'+
      '<div class="btns" style="margin-top:10px"><button class="btn primary" data-act="add-pay" data-id="'+d.id+'">'+(k==='owed'?'Add payment received':'Add payment I made')+'</button><button class="btn" data-act="toggle-pays" data-id="'+d.id+'">Show payments</button></div>'+
      '<div id="pays-'+d.id+'" hidden style="margin-top:8px">'+pays+'</div></div>';
-  }).join('');
+  };
+  var act=list.filter(function(d){return d.total-debtPaid(d)>0});
+  var done=list.filter(function(d){return d.total-debtPaid(d)<=0});
+  var out=h+act.map(card).join('');
+  if(!act.length)out+='<div class="empty">'+(done.length?'All settled.':'Nothing here yet.')+'</div>';
+  if(done.length){
+    out+='<div class="sechd"><h2>Settled ('+done.length+')</h2><button class="btn sm" data-act="toggle-settled">'+(ui.showSettled?'Hide':'Show')+'</button></div>';
+    if(ui.showSettled)out+=done.map(card).join('');
+  }
+  return out;
 }
 function vMore(){
   function secList(kind,label){
@@ -475,6 +484,7 @@ function restoreFrom(text){
 var A={
   tab:function(t){ui.tab=t.dataset.v;render();window.scrollTo(0,0)},
   period:function(t){ui.period=t.dataset.v;render()},
+  'toggle-settled':function(){ui.showSettled=!ui.showSettled;render()},
   dkind:function(t){ui.debtKind=t.dataset.v;render()},
   add:function(){newForm('expense')},
   close:function(){closeSheet()},
@@ -489,7 +499,7 @@ var A={
   'save-acct':saveAcct,
   'new-debt':function(){dform={kind:ui.debtKind,name:'',total:'',addAvail:true};debtSheet()},
   'save-debt':saveDebt,
-  'del-debt':function(t){var id=t.dataset.id,k=ui.debtKind;confirmBox('Delete this debt and all its payments? Available will change if payments were counted.','Delete',function(){S.debts[k]=S.debts[k].filter(function(d){return d.id!==id});save();closeSheet();render()})},
+  'del-debt':function(t){var id=t.dataset.id,k=ui.debtKind;confirmBox('Deleting removes its payments too, so Available will change. A settled debt can simply stay in the Settled list.','Delete',function(){S.debts[k]=S.debts[k].filter(function(d){return d.id!==id});save();closeSheet();render()})},
   quickamt:function(t){document.getElementById('amt-'+t.dataset.id).value=t.dataset.v},
   'toggle-pays':function(t){var el=document.getElementById('pays-'+t.dataset.id);el.hidden=!el.hidden;t.textContent=el.hidden?'Show payments':'Hide payments'},
   'add-pay':function(t){
