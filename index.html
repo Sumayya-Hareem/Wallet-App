@@ -1,0 +1,524 @@
+<title>Wallet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0f5d63">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=DM+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone-width column, five-tab bar fixed at the bottom, bottom sheets for every form. */
+:root{
+  --bg:#eff2ef; --surface:#ffffff; --surface2:#e5eae6; --ink:#16211d; --muted:#5a6a63; --line:#d7ded9;
+  --accent:#0f5d63; --accent-ink:#ffffff; --accent-soft:#d6ebe9;
+  --pos:#1f7a47; --neg:#b3382c; --neg-soft:#f6dcd8; --pos-soft:#d9efe0;
+  --display:"Bricolage Grotesque","DM Sans",system-ui,sans-serif;
+  --body:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1514; --surface:#17201e; --surface2:#202b28; --ink:#e7eee9; --muted:#9db0a7; --line:#2b3835;
+  --accent:#58bdb8; --accent-ink:#06201f; --accent-soft:#1c3533;
+  --pos:#62c78a; --neg:#f08a7e; --neg-soft:#3b1f1c; --pos-soft:#1a3326; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1514; --surface:#17201e; --surface2:#202b28; --ink:#e7eee9; --muted:#9db0a7; --line:#2b3835;
+  --accent:#58bdb8; --accent-ink:#06201f; --accent-soft:#1c3533;
+  --pos:#62c78a; --neg:#f08a7e; --neg-soft:#3b1f1c; --pos-soft:#1a3326; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.4;
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent}
+.app{max-width:520px;margin:0 auto;padding-block:16px 120px}
+h1,h2,h3{font-family:var(--display);margin:0;font-weight:700;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.top h1{font-size:24px}
+.top span{color:var(--muted);font-size:13px}
+
+.hero{border-radius:20px;padding:20px;background:var(--accent);color:var(--accent-ink)}
+.hero.neg{background:var(--neg);color:#fff}
+.hero .lbl{font-size:13px;opacity:.85;text-transform:uppercase;letter-spacing:.08em}
+.hero .big{font-family:var(--display);font-weight:700;font-size:38px;line-height:1.1;margin:6px 0 10px;overflow-wrap:anywhere}
+.hero .sub{font-size:14px;opacity:.9}
+
+.seg{display:flex;gap:4px;background:var(--surface2);border-radius:12px;padding:4px;margin:16px 0}
+.seg button{flex:1;border:0;background:transparent;padding:9px 4px;border-radius:9px;font-weight:500;color:var(--muted);min-height:40px}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.stat .k{font-size:12px;color:var(--muted)}
+.stat .v{font-family:var(--display);font-size:20px;font-weight:700;margin-top:4px;overflow-wrap:anywhere}
+.pos{color:var(--pos)} .negc{color:var(--neg)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:14px}
+.panel h3{font-size:16px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:6px 0;min-width:0}
+.row .l{min-width:0;overflow-wrap:anywhere}
+.row .r{white-space:nowrap}
+.muted{color:var(--muted)} .small{font-size:13px}
+.bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bar.exp i{background:var(--neg)} .bar.inc i{background:var(--pos)}
+.sechd{display:flex;justify-content:space-between;align-items:center;margin:20px 0 8px}
+.sechd h2{font-size:18px}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;font-weight:600;min-height:44px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--neg);border-color:var(--neg)}
+.btn.sm{padding:6px 10px;min-height:36px;font-size:14px}
+.btn.block{width:100%}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+
+.entry{display:flex;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 10px 10px 12px;margin-bottom:8px}
+.entry .main{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0}
+.entry .t{font-weight:600;overflow-wrap:anywhere}
+.entry .m{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.entry .amt{font-family:var(--display);font-weight:700;white-space:nowrap}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;margin-right:6px;text-transform:uppercase;letter-spacing:.05em}
+.chip.income{background:var(--pos-soft);color:var(--pos)}
+.chip.expense{background:var(--neg-soft);color:var(--neg)}
+.chip.transfer{background:var(--accent-soft);color:var(--accent)}
+.iconbtn{border:0;background:transparent;width:40px;height:40px;border-radius:10px;color:var(--muted);display:grid;place-items:center}
+.iconbtn:hover{background:var(--surface2)}
+.iconbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%;min-height:44px}
+.field input[type=checkbox]{width:22px;height:22px;min-height:0}
+.check{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.quick{display:flex;gap:8px;margin:8px 0}
+.quick button{flex:1}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;z-index:20;
+  padding:4px max(8px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+nav.tabs button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:11px;font-weight:500;color:var(--muted);min-height:52px;border-radius:10px}
+nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{color:var(--accent)}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:18px;border:0;
+  background:var(--accent);color:var(--accent-ink);font-size:30px;line-height:1;box-shadow:0 6px 16px rgba(0,0,0,.28);z-index:19}
+
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:none}
+.scrim.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:22px 22px 0 0;max-height:92%;overflow-y:auto;display:none;
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet.open{display:block}
+.sheet .in{max-width:520px;margin:0 auto}
+.sheet h2{font-size:20px;margin-bottom:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:60;max-width:90%;text-align:center;font-size:14px}
+textarea.code{width:100%;min-height:110px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+.warnbox{background:var(--neg-soft);color:var(--neg);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+</style>
+
+<div class="app" id="view"></div>
+<button class="fab" id="fab" data-act="add" aria-label="Add entry">+</button>
+<nav class="tabs" id="tabs"></nav>
+<div class="scrim" id="scrim" data-act="close"></div>
+<div class="sheet" id="sheet"><div class="in" id="sheetin"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+var KEY='wallet.v1';
+function uid(){return Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4)}
+function pad(n){return n<10?'0'+n:''+n}
+function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function today(){return iso(new Date())}
+function fmt(n){return 'Rs '+(n<0?'-':'')+Math.abs(Math.round(n)).toLocaleString('en-IN')}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function num(v){var n=Math.round(Number(String(v==null?'':v).replace(/[, ]/g,'')));return isFinite(n)?n:0}
+function dfmt(s){if(!s)return '';var p=s.split('-');var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return +p[2]+' '+m[+p[1]-1]+' '+p[0]}
+
+function defaults(){
+  return {
+    accounts:[
+      {id:'avail',name:'Available',kind:'main',start:0},
+      {id:'easy',name:'Easypaisa Savings',kind:'savings',start:0,goal:0,end:'2027-04-30'},
+      {id:'mash',name:'Mashreq Savings',kind:'savings',start:0,goal:0,end:''}
+    ],
+    sections:{
+      income:['Salary','Freelance','Gift','Other income'].map(function(n){return {id:uid(),name:n}}),
+      expense:['Food','Transport','Bills','Health','Family','Shopping','Ayashi','Other expense'].map(function(n){return {id:uid(),name:n}})
+    },
+    entries:[],
+    debts:{owed:[],owe:[]}
+  };
+}
+function valid(o){return o&&Array.isArray(o.accounts)&&o.accounts.length&&o.sections&&Array.isArray(o.sections.income)&&Array.isArray(o.sections.expense)&&Array.isArray(o.entries)&&o.debts&&Array.isArray(o.debts.owed)&&Array.isArray(o.debts.owe)}
+var S;
+function load(){try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(valid(o))return o}}catch(e){}return defaults()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+S=load();
+
+var ui={tab:'home',period:'month',debtKind:'owed'};
+
+/* ---------- calculations ---------- */
+function acct(id){return S.accounts.filter(function(a){return a.id===id})[0]}
+function debtPaid(d){return d.payments.reduce(function(s,p){return s+p.amount},0)}
+function balance(id){
+  var a=acct(id);if(!a)return 0;
+  var b=a.start||0;
+  S.entries.forEach(function(e){
+    if(e.type==='income'){if(id==='avail')b+=e.amount}
+    else if(e.type==='expense'){if((e.account||'avail')===id)b-=e.amount}
+    else if(e.type==='transfer'){if(e.from===id)b-=e.amount;if(e.to===id)b+=e.amount}
+  });
+  if(id==='avail'){
+    S.debts.owed.forEach(function(d){b+=debtPaid(d)});
+    S.debts.owe.forEach(function(d){if(d.addAvail)b+=d.total;b-=debtPaid(d)});
+  }
+  return b;
+}
+function totalSavings(){return S.accounts.filter(function(a){return a.kind==='savings'}).reduce(function(s,a){return s+balance(a.id)},0)}
+function range(p){
+  var t=new Date(),y=t.getFullYear(),m=t.getMonth();
+  if(p==='week'){var d=new Date(t.getFullYear(),t.getMonth(),t.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));var e=new Date(d);e.setDate(e.getDate()+6);return [iso(d),iso(e)]}
+  if(p==='month')return [iso(new Date(y,m,1)),iso(new Date(y,m+1,0))];
+  if(p==='year')return [y+'-01-01',y+'-12-31'];
+  return ['0000-01-01','9999-12-31'];
+}
+function stats(p){
+  var r=range(p),lo=r[0],hi=r[1];
+  function inr(d){return d>=lo&&d<=hi}
+  var o={income:0,expense:0,moved:0,byExp:{},byInc:{},recvd:0,paidBack:0};
+  S.entries.forEach(function(e){
+    if(!inr(e.date))return;
+    if(e.type==='income'){o.income+=e.amount;o.byInc[e.section||'']=(o.byInc[e.section||'']||0)+e.amount}
+    else if(e.type==='expense'){o.expense+=e.amount;o.byExp[e.section||'']=(o.byExp[e.section||'']||0)+e.amount}
+    else{
+      var f=acct(e.from),t=acct(e.to);
+      if(f&&t){if(f.kind==='main'&&t.kind==='savings')o.moved+=e.amount;else if(f.kind==='savings'&&t.kind==='main')o.moved-=e.amount}
+    }
+  });
+  S.debts.owed.forEach(function(d){d.payments.forEach(function(x){if(inr(x.date))o.recvd+=x.amount})});
+  S.debts.owe.forEach(function(d){d.payments.forEach(function(x){if(inr(x.date))o.paidBack+=x.amount})});
+  return o;
+}
+function secName(id,kind){var l=S.sections[kind].filter(function(s){return s.id===id})[0];return l?l.name:'Uncategorized'}
+
+/* ---------- icons ---------- */
+var IC={
+ home:'<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+ hist:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+ acc:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M16 15h2"/></svg>',
+ debt:'<svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3"/><path d="M17 17H5l3 3"/></svg>',
+ more:'<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>',
+ bin:'<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>'
+};
+var TABS=[['home','Home','home'],['history','History','hist'],['accounts','Accounts','acc'],['debts','Debts','debt'],['more','More','more']];
+
+/* ---------- views ---------- */
+function rowsBreakdown(map,total,kind,cls){
+  var keys=Object.keys(map).sort(function(a,b){return map[b]-map[a]});
+  if(!keys.length)return '<div class="muted small">Nothing in this period.</div>';
+  return keys.map(function(k){
+    var pct=total?Math.round(map[k]*100/total):0;
+    return '<div style="padding:6px 0"><div class="row" style="padding:0"><span class="l">'+esc(secName(k,kind))+'</span><span class="r num">'+fmt(map[k])+' · '+pct+'%</span></div><div class="bar '+cls+'"><i style="width:'+pct+'%"></i></div></div>';
+  }).join('');
+}
+function vHome(){
+  var av=balance('avail'),st=stats(ui.period);
+  var owedRem=0,oweRem=0;
+  S.debts.owed.forEach(function(d){owedRem+=d.total-debtPaid(d)});
+  S.debts.owe.forEach(function(d){oweRem+=d.total-debtPaid(d)});
+  var net=st.income-st.expense;
+  var seg=[['week','Week'],['month','Month'],['year','Year'],['life','Lifetime']].map(function(p){return '<button data-act="period" data-v="'+p[0]+'" class="'+(ui.period===p[0]?'on':'')+'">'+p[1]+'</button>'}).join('');
+  return '<div class="top"><h1>Wallet</h1><span>'+dfmt(today())+'</span></div>'+
+  '<div class="hero '+(av<0?'neg':'')+'"><div class="lbl">Available to spend</div><div class="big num">'+fmt(av)+'</div><div class="sub num">Total savings '+fmt(totalSavings())+'</div></div>'+
+  '<div class="seg" role="tablist">'+seg+'</div>'+
+  '<div class="grid2">'+
+   '<div class="stat"><div class="k">Income</div><div class="v num pos">'+fmt(st.income)+'</div></div>'+
+   '<div class="stat"><div class="k">Expenses</div><div class="v num negc">'+fmt(st.expense)+'</div></div>'+
+   '<div class="stat"><div class="k">Moved to savings</div><div class="v num">'+fmt(st.moved)+'</div></div>'+
+   '<div class="stat"><div class="k">Income minus expenses</div><div class="v num '+(net<0?'negc':'pos')+'">'+fmt(net)+'</div></div>'+
+  '</div>'+
+  '<div class="grid2" style="margin-top:10px">'+
+   '<div class="stat"><div class="k">Money owed to you</div><div class="v num">'+fmt(owedRem)+'</div><div class="small muted num">still to receive · '+fmt(st.recvd)+' came in</div></div>'+
+   '<div class="stat"><div class="k">Money you owe</div><div class="v num">'+fmt(oweRem)+'</div><div class="small muted num">still to pay · '+fmt(st.paidBack)+' paid back</div></div>'+
+  '</div>'+
+  '<div class="panel"><h3>Expenses by section</h3>'+rowsBreakdown(st.byExp,st.expense,'expense','exp')+'</div>'+
+  '<div class="panel"><h3>Income by source</h3>'+rowsBreakdown(st.byInc,st.income,'income','inc')+'</div>';
+}
+function entryTitle(e){
+  if(e.type==='transfer'){var f=acct(e.from),t=acct(e.to);return (f?f.name:'?')+' → '+(t?t.name:'?')}
+  return secName(e.section,e.type==='income'?'income':'expense');
+}
+function vHistory(){
+  var list=S.entries.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(a.id<b.id?1:-1)});
+  var h='<div class="top"><h1>History</h1><span>'+list.length+' entries</span></div>';
+  if(!list.length)return h+'<div class="empty">No entries yet. Tap + to add your first income or expense.</div>';
+  return h+list.map(function(e){
+    var sign=e.type==='income'?'+':e.type==='expense'?'-':'';
+    var cls=e.type==='income'?'pos':e.type==='expense'?'negc':'';
+    var acc=e.type==='transfer'?'':(acct(e.account||'avail')||{name:''}).name;
+    var meta=dfmt(e.date)+(acc?' · '+esc(acc):'')+(e.note?' · '+esc(e.note):'');
+    return '<div class="entry"><button class="main" data-act="edit-entry" data-id="'+e.id+'"><div class="t"><span class="chip '+e.type+'">'+e.type+'</span>'+esc(entryTitle(e))+'</div><div class="m">'+meta+'</div></button>'+
+      '<div class="amt num '+cls+'">'+sign+fmt(e.amount).replace('Rs ','Rs ')+'</div>'+
+      '<button class="iconbtn" data-act="del-entry" data-id="'+e.id+'" aria-label="Delete entry">'+IC.bin+'</button></div>';
+  }).join('');
+}
+function daysLeft(end){
+  if(!end)return '';
+  var n=Math.ceil((new Date(end+'T00:00:00')-new Date(today()+'T00:00:00'))/864e5);
+  return n>=0?n+' days left':'Goal date passed';
+}
+function vAccounts(){
+  var h='<div class="top"><h1>Accounts</h1><span>'+fmt(totalSavings())+' saved</span></div>'+
+    '<div class="btns" style="margin-bottom:14px"><button class="btn primary" data-act="move">Move money</button><button class="btn" data-act="new-acct">Add savings account</button></div>';
+  return h+S.accounts.map(function(a){
+    var b=balance(a.id),g='';
+    if(a.kind==='savings'&&(a.goal>0||a.end)){
+      var pct=a.goal>0?Math.max(0,Math.min(100,Math.round(b*100/a.goal))):0;
+      g=(a.goal>0?'<div class="bar"><i style="width:'+pct+'%"></i></div><div class="row small muted" style="padding-bottom:0"><span class="num">'+pct+'% of '+fmt(a.goal)+'</span><span>'+esc(daysLeft(a.end))+'</span></div>':'<div class="small muted">'+esc(daysLeft(a.end))+'</div>');
+    }
+    return '<div class="panel"><div class="row" style="padding-top:0"><div class="l"><h3 style="margin:0">'+esc(a.name)+'</h3><div class="small muted">'+(a.kind==='main'?'Spending money':'Savings')+(a.start?' · started with '+fmt(a.start):'')+'</div></div>'+
+      '<div class="r"><div class="num" style="font-family:var(--display);font-weight:700;font-size:20px;text-align:right;'+(b<0?'color:var(--neg)':'')+'">'+fmt(b)+'</div><button class="btn sm" style="margin-top:6px" data-act="edit-acct" data-id="'+a.id+'">Edit</button></div></div>'+g+'</div>';
+  }).join('');
+}
+function vDebts(){
+  var k=ui.debtKind,list=S.debts[k];
+  var seg='<div class="seg"><button data-act="dkind" data-v="owed" class="'+(k==='owed'?'on':'')+'">Owed to me</button><button data-act="dkind" data-v="owe" class="'+(k==='owe'?'on':'')+'">I owe</button></div>';
+  var h='<div class="top"><h1>Debts</h1><span>'+(k==='owed'?'People who owe you':'Money you borrowed')+'</span></div>'+seg+
+   '<button class="btn primary block" data-act="new-debt">'+(k==='owed'?'Add person who owes you':'Add money I borrowed')+'</button>';
+  if(!list.length)return h+'<div class="empty">Nothing here yet.</div>';
+  return h+list.map(function(d){
+    var paid=debtPaid(d),rem=d.total-paid,pct=d.total>0?Math.max(0,Math.min(100,Math.round(paid*100/d.total))):0;
+    var pays=d.payments.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){
+      return '<div class="row small"><span class="l">'+dfmt(p.date)+'</span><span class="r num">'+fmt(p.amount)+' <button class="iconbtn" style="display:inline-grid;vertical-align:middle" data-act="del-pay" data-id="'+d.id+'" data-pid="'+p.id+'" aria-label="Delete payment">'+IC.bin+'</button></span></div>';
+    }).join('')||'<div class="small muted">No payments yet.</div>';
+    return '<div class="panel"><div class="row" style="padding-top:0"><h3 class="l" style="margin:0">'+esc(d.name)+'</h3><button class="iconbtn" data-act="del-debt" data-id="'+d.id+'" aria-label="Delete this debt">'+IC.bin+'</button></div>'+
+     '<div class="grid2" style="margin-top:6px"><div><div class="small muted">Total</div><div class="num" style="font-weight:600">'+fmt(d.total)+'</div></div><div><div class="small muted">Paid so far</div><div class="num" style="font-weight:600">'+fmt(paid)+'</div></div></div>'+
+     '<div class="row"><span class="muted">Remaining</span><span class="num" style="font-family:var(--display);font-weight:700;font-size:20px">'+fmt(rem)+'</span></div>'+
+     '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+     '<div class="quick"><button class="btn" data-act="quickamt" data-id="'+d.id+'" data-v="500">500</button><button class="btn" data-act="quickamt" data-id="'+d.id+'" data-v="1000">1000</button></div>'+
+     '<div class="grid2"><div class="field" style="margin:0"><label for="amt-'+d.id+'">Amount</label><input id="amt-'+d.id+'" inputmode="numeric" placeholder="0"></div><div class="field" style="margin:0"><label for="dt-'+d.id+'">Date</label><input id="dt-'+d.id+'" type="date" value="'+today()+'"></div></div>'+
+     '<div class="btns" style="margin-top:10px"><button class="btn primary" data-act="add-pay" data-id="'+d.id+'">'+(k==='owed'?'Add payment received':'Add payment I made')+'</button><button class="btn" data-act="toggle-pays" data-id="'+d.id+'">Show payments</button></div>'+
+     '<div id="pays-'+d.id+'" hidden style="margin-top:8px">'+pays+'</div></div>';
+  }).join('');
+}
+function vMore(){
+  function secList(kind,label){
+    var l=S.sections[kind];
+    return '<div class="panel"><h3>'+label+'</h3>'+(l.map(function(s){return '<div class="row"><span class="l">'+esc(s.name)+'</span><button class="iconbtn" data-act="del-sec" data-kind="'+kind+'" data-id="'+s.id+'" aria-label="Delete '+esc(s.name)+'">'+IC.bin+'</button></div>'}).join('')||'<div class="muted small">None.</div>')+
+     '<div class="btns" style="margin-top:8px;flex-wrap:nowrap"><input id="newsec-'+kind+'" placeholder="New name" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px"><button class="btn" data-act="add-sec" data-kind="'+kind+'">Add</button></div></div>';
+  }
+  return '<div class="top"><h1>More</h1></div>'+
+   '<div class="panel"><h3>Backup and restore</h3><p class="small muted" style="margin:0 0 10px">Your data lives only in this browser on this phone. Save a backup now and then, and keep a copy in Drive or on your laptop.</p>'+
+   '<div class="btns"><button class="btn primary" data-act="backup">Save backup file</button><button class="btn" data-act="restore-file">Restore from backup file</button><button class="btn" data-act="csv">Export entries as CSV</button></div>'+
+   '<input type="file" id="rfile" accept=".json,application/json,text/plain" hidden>'+
+   '<div id="bkout" style="margin-top:12px"></div>'+
+   '<div class="field" style="margin-top:14px"><label for="rpaste">Or restore from pasted backup text</label><textarea class="code" id="rpaste" placeholder="Paste backup text here"></textarea></div>'+
+   '<button class="btn" data-act="restore-paste">Restore from pasted text</button></div>'+
+   '<div class="sechd"><h2>Sections</h2></div>'+secList('income','Income sources')+secList('expense','Expense sections')+
+   '<p class="small muted" style="margin-top:16px">Deleting a section keeps its entries. They show as Uncategorized.</p>';
+}
+function render(){
+  var v=document.getElementById('view');
+  var map={home:vHome,history:vHistory,accounts:vAccounts,debts:vDebts,more:vMore};
+  v.innerHTML=map[ui.tab]();
+  document.getElementById('tabs').innerHTML=TABS.map(function(t){return '<button data-act="tab" data-v="'+t[0]+'" class="'+(ui.tab===t[0]?'on':'')+'">'+IC[t[2]]+t[1]+'</button>'}).join('');
+  document.getElementById('fab').hidden=!(ui.tab==='home'||ui.tab==='history');
+}
+
+/* ---------- sheet + toast ---------- */
+var toastT;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true},3200)}
+function openSheet(html){document.getElementById('sheetin').innerHTML=html;document.getElementById('sheet').classList.add('open');document.getElementById('scrim').classList.add('open')}
+function closeSheet(){document.getElementById('sheet').classList.remove('open');document.getElementById('scrim').classList.remove('open');form=null;pending=null}
+var form=null,pending=null;
+function confirmBox(msg,label,fn){
+  pending=fn;
+  openSheet('<h2>Are you sure?</h2><p style="margin:0 0 16px">'+esc(msg)+'</p><div class="btns"><button class="btn danger" data-act="confirm-yes">'+esc(label)+'</button><button class="btn" data-act="close">Cancel</button></div>');
+}
+function opts(list,sel,key,lab){return list.map(function(o){return '<option value="'+esc(o[key||'id'])+'"'+(o[key||'id']===sel?' selected':'')+'>'+esc(o[lab||'name'])+'</option>'}).join('')}
+
+/* entry form */
+function entrySheet(){
+  var f=form,isT=f.type==='transfer';
+  var tabs=f.id?'':'<div class="seg" style="margin-top:0">'+['expense','income','transfer'].map(function(t){return '<button data-act="etype" data-v="'+t+'" class="'+(f.type===t?'on':'')+'">'+t.charAt(0).toUpperCase()+t.slice(1)+'</button>'}).join('')+'</div>';
+  var h='<h2>'+(f.id?'Edit entry':'New entry')+'</h2>'+tabs+
+   '<div class="field"><label for="f-amount">Amount (Rs)</label><input id="f-amount" data-f="amount" inputmode="numeric" placeholder="0" value="'+esc(f.amount)+'"></div>'+
+   '<div class="field"><label for="f-date">Date</label><input id="f-date" data-f="date" type="date" value="'+esc(f.date)+'"></div>';
+  if(!isT){
+    var kind=f.type==='income'?'income':'expense';
+    var secs=S.sections[kind];
+    h+='<div class="field"><label for="f-section">'+(kind==='income'?'Source':'Section')+'</label><select id="f-section" data-f="section">'+opts(secs,f.section)+(secs.every(function(s){return s.id!==f.section})&&f.section?'<option value="'+esc(f.section)+'" selected>Uncategorized</option>':'')+'</select></div>';
+    if(kind==='expense')h+='<div class="field"><label for="f-account">Paid from</label><select id="f-account" data-f="account">'+opts(S.accounts,f.account)+'</select></div>';
+    h+='<div class="field"><label for="f-note">'+(kind==='income'?'Details':'What was it for?')+'</label><input id="f-note" data-f="note" value="'+esc(f.note)+'" placeholder="Optional"></div>';
+  }else{
+    h+='<div class="field"><label for="f-from">From</label><select id="f-from" data-f="from">'+opts(S.accounts,f.from)+'</select></div>'+
+       '<div class="field"><label for="f-to">To</label><select id="f-to" data-f="to">'+opts(S.accounts,f.to)+'</select></div>'+
+       '<div class="field"><label for="f-note">Note</label><input id="f-note" data-f="note" value="'+esc(f.note)+'" placeholder="Optional"></div>';
+  }
+  h+='<div class="btns"><button class="btn primary" data-act="save-entry" style="flex:1">Save</button><button class="btn" data-act="close">Cancel</button></div>';
+  openSheet(h);
+}
+function newForm(type,id){
+  var e=id?S.entries.filter(function(x){return x.id===id})[0]:null;
+  if(e){form={id:e.id,type:e.type,amount:String(e.amount),date:e.date,section:e.section||'',note:e.note||'',account:e.account||'avail',from:e.from||'avail',to:e.to||(S.accounts[1]&&S.accounts[1].id)||'avail'};}
+  else{
+    var sv=S.accounts.filter(function(a){return a.kind==='savings'})[0];
+    form={id:null,type:type||'expense',amount:'',date:today(),section:'',note:'',account:'avail',from:'avail',to:sv?sv.id:'avail'};
+    setDefaultSection();
+  }
+  entrySheet();
+}
+function setDefaultSection(){var l=S.sections[form.type==='income'?'income':'expense'];form.section=l.length?l[0].id:''}
+function saveEntry(){
+  var f=form,amount=num(f.amount);
+  if(amount<=0){toast('Enter an amount above zero.');return}
+  if(!f.date){toast('Choose a date.');return}
+  var old=f.id?S.entries.filter(function(x){return x.id===f.id})[0]:null;
+  var warn='';
+  if(f.type==='transfer'&&f.from===f.to){toast('Choose two different accounts.');return}
+  var e={id:f.id||uid(),type:f.type,amount:amount,date:f.date,note:f.note.trim()};
+  if(f.type==='income'){e.section=f.section;e.account='avail'}
+  else if(f.type==='expense'){
+    e.section=f.section;e.account=f.account;
+    var bal=balance(f.account)+(old&&old.type==='expense'&&(old.account||'avail')===f.account?old.amount:0);
+    if(amount>bal)warn='Only '+fmt(bal)+' in '+acct(f.account).name+'. Saved anyway.';
+  }else{
+    e.from=f.from;e.to=f.to;
+    var b2=balance(f.from)+(old&&old.type==='transfer'&&old.from===f.from?old.amount:0);
+    if(amount>b2)warn='Only '+fmt(b2)+' in '+acct(f.from).name+'. Saved anyway.';
+  }
+  if(old){S.entries[S.entries.indexOf(old)]=e}else S.entries.push(e);
+  save();closeSheet();render();toast(warn||'Saved.');
+}
+
+/* account form */
+var aform=null;
+function acctSheet(){
+  var a=aform,sv=a.kind==='savings';
+  openSheet('<h2>'+(a.isNew?'New savings account':'Edit account')+'</h2>'+
+   '<div class="field"><label for="a-name">Name</label><input id="a-name" data-a="name" value="'+esc(a.name)+'"></div>'+
+   '<div class="field"><label for="a-start">Starting balance (money you had before using the app)</label><input id="a-start" data-a="start" inputmode="numeric" value="'+esc(a.start)+'" placeholder="0"></div>'+
+   (sv?'<div class="field"><label for="a-goal">Goal amount (optional)</label><input id="a-goal" data-a="goal" inputmode="numeric" value="'+esc(a.goal)+'" placeholder="0"></div>'+
+       '<div class="field"><label for="a-end">Goal end date (optional)</label><input id="a-end" data-a="end" type="date" value="'+esc(a.end)+'"></div>':'')+
+   '<div class="btns"><button class="btn primary" data-act="save-acct" style="flex:1">Save</button><button class="btn" data-act="close">Cancel</button></div>');
+}
+function saveAcct(){
+  var a=aform,name=a.name.trim();
+  if(!name){toast('Give the account a name.');return}
+  var o=a.isNew?{id:uid(),kind:'savings'}:acct(a.id);
+  o.name=name;o.start=num(a.start);
+  if(o.kind==='savings'){o.goal=num(a.goal);o.end=a.end||''}
+  if(a.isNew)S.accounts.push(o);
+  save();aform=null;closeSheet();render();toast('Saved.');
+}
+
+/* debt form */
+var dform=null;
+function debtSheet(){
+  var d=dform;
+  openSheet('<h2>'+(d.kind==='owed'?'Add person who owes you':'Add money I borrowed')+'</h2>'+
+   '<div class="field"><label for="d-name">'+(d.kind==='owed'?'Person':'Borrowed from')+'</label><input id="d-name" data-d="name" value="'+esc(d.name)+'"></div>'+
+   '<div class="field"><label for="d-total">Total amount (Rs)</label><input id="d-total" data-d="total" inputmode="numeric" value="'+esc(d.total)+'" placeholder="0"></div>'+
+   (d.kind==='owe'?'<label class="check"><input type="checkbox" id="d-avail" data-d="addAvail"'+(d.addAvail?' checked':'')+'><span>Add this amount to Available now (untick if you already spent it)</span></label>':'')+
+   '<div class="btns"><button class="btn primary" data-act="save-debt" style="flex:1">Save</button><button class="btn" data-act="close">Cancel</button></div>');
+}
+function saveDebt(){
+  var d=dform,name=d.name.trim(),total=num(d.total);
+  if(!name){toast('Enter a name.');return}
+  if(total<=0){toast('Enter a total above zero.');return}
+  S.debts[d.kind].push({id:uid(),name:name,total:total,date:today(),addAvail:d.kind==='owe'?!!d.addAvail:false,payments:[]});
+  save();dform=null;closeSheet();render();toast('Saved.');
+}
+
+/* backup */
+function copyText(txt,done){
+  function fallback(){var ta=document.getElementById('bktext');if(ta){ta.focus();ta.select();try{document.execCommand('copy');done(true)}catch(e){done(false)}}else done(false)}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){done(true)},fallback);return}}catch(e){}
+  fallback();
+}
+function showText(label,txt,filename,mime){
+  var el=document.getElementById('bkout');
+  el.innerHTML='<div class="small muted" style="margin-bottom:6px">'+label+'</div><textarea class="code" id="bktext" readonly></textarea>'+
+    '<div class="btns" style="margin-top:8px"><button class="btn" data-act="copybk">Copy text</button></div>';
+  document.getElementById('bktext').value=txt;
+  window.__bk={txt:txt,filename:filename,mime:mime};
+}
+function tryDownload(txt,filename,mime){
+  try{var b=new Blob([txt],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},4000)}catch(e){}
+}
+function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function buildCsv(){
+  var rows=[['Date','Type','Amount','Section','Account','From','To','Note']];
+  S.entries.slice().sort(function(a,b){return a.date<b.date?-1:1}).forEach(function(e){
+    var acc=e.type==='transfer'?'':(acct(e.account||'avail')||{}).name||'';
+    var f=e.type==='transfer'?(acct(e.from)||{}).name||'':'',t=e.type==='transfer'?(acct(e.to)||{}).name||'':'';
+    rows.push([e.date,e.type,e.amount,e.type==='transfer'?'':secName(e.section,e.type==='income'?'income':'expense'),acc,f,t,e.note||'']);
+  });
+  return rows.map(function(r){return r.map(csvCell).join(',')}).join('\n');
+}
+function restoreFrom(text){
+  var o;try{o=JSON.parse(text)}catch(e){toast('That is not a valid backup.');return}
+  if(!valid(o)){toast('That file is not a wallet backup.');return}
+  confirmBox('Restoring replaces everything in the app with the contents of this backup.','Replace everything',function(){S=o;save();closeSheet();render();toast('Backup restored.')});
+}
+
+/* ---------- actions ---------- */
+var A={
+  tab:function(t){ui.tab=t.dataset.v;render();window.scrollTo(0,0)},
+  period:function(t){ui.period=t.dataset.v;render()},
+  dkind:function(t){ui.debtKind=t.dataset.v;render()},
+  add:function(){newForm('expense')},
+  close:function(){closeSheet()},
+  'confirm-yes':function(){var f=pending;pending=null;if(f)f()},
+  etype:function(t){var f=form;f.type=t.dataset.v;if(f.type!=='transfer')setDefaultSection();entrySheet()},
+  'save-entry':saveEntry,
+  'edit-entry':function(t){newForm(null,t.dataset.id)},
+  'del-entry':function(t){var id=t.dataset.id;confirmBox('Delete this entry? Balances will update.','Delete',function(){S.entries=S.entries.filter(function(e){return e.id!==id});save();closeSheet();render()})},
+  move:function(){newForm('transfer');},
+  'new-acct':function(){aform={isNew:true,kind:'savings',name:'',start:'',goal:'',end:''};acctSheet()},
+  'edit-acct':function(t){var a=acct(t.dataset.id);aform={id:a.id,kind:a.kind,name:a.name,start:a.start?String(a.start):'',goal:a.goal?String(a.goal):'',end:a.end||''};acctSheet()},
+  'save-acct':saveAcct,
+  'new-debt':function(){dform={kind:ui.debtKind,name:'',total:'',addAvail:true};debtSheet()},
+  'save-debt':saveDebt,
+  'del-debt':function(t){var id=t.dataset.id,k=ui.debtKind;confirmBox('Delete this debt and all its payments? Available will change if payments were counted.','Delete',function(){S.debts[k]=S.debts[k].filter(function(d){return d.id!==id});save();closeSheet();render()})},
+  quickamt:function(t){document.getElementById('amt-'+t.dataset.id).value=t.dataset.v},
+  'toggle-pays':function(t){var el=document.getElementById('pays-'+t.dataset.id);el.hidden=!el.hidden;t.textContent=el.hidden?'Show payments':'Hide payments'},
+  'add-pay':function(t){
+    var id=t.dataset.id,amt=num(document.getElementById('amt-'+id).value),dt=document.getElementById('dt-'+id).value;
+    if(amt<=0){toast('Enter an amount above zero.');return}
+    if(!dt){toast('Choose a date.');return}
+    var d=S.debts[ui.debtKind].filter(function(x){return x.id===id})[0];
+    var rem=d.total-debtPaid(d);
+    d.payments.push({id:uid(),amount:amt,date:dt});save();render();
+    toast(amt>rem?'Saved. That is more than the remaining '+fmt(rem)+'.':'Payment added.');
+  },
+  'del-pay':function(t){var id=t.dataset.id,pid=t.dataset.pid;confirmBox('Delete this payment?','Delete',function(){var d=S.debts[ui.debtKind].filter(function(x){return x.id===id})[0];d.payments=d.payments.filter(function(p){return p.id!==pid});save();closeSheet();render()})},
+  'add-sec':function(t){var k=t.dataset.kind,i=document.getElementById('newsec-'+k),n=i.value.trim();if(!n){toast('Type a name first.');return}S.sections[k].push({id:uid(),name:n});save();render()},
+  'del-sec':function(t){var k=t.dataset.kind,id=t.dataset.id;confirmBox('Delete this section? Its entries stay and show as Uncategorized.','Delete',function(){S.sections[k]=S.sections[k].filter(function(s){return s.id!==id});save();closeSheet();render()})},
+  backup:function(){var txt=JSON.stringify(S,null,2),name='wallet-backup-'+today()+'.json';tryDownload(txt,name,'application/json');showText('If the file did not download, copy this text and paste it into a note or Drive file. You can restore from it later.',txt,name,'application/json')},
+  csv:function(){var txt=buildCsv();showText('CSV for Excel or Google Sheets. Copy it, or save it as a file if your browser allows.',txt,'wallet-entries.csv','text/csv');tryDownload(txt,'wallet-entries.csv','text/csv')},
+  copybk:function(){var b=window.__bk;if(!b)return;copyText(b.txt,function(ok){toast(ok?'Copied.':'Copy failed. Select the text and copy it by hand.')})},
+  'restore-file':function(){document.getElementById('rfile').click()},
+  'restore-paste':function(){var v=document.getElementById('rpaste').value.trim();if(!v){toast('Paste the backup text first.');return}restoreFrom(v)}
+};
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-act]');if(!t)return;
+  var fn=A[t.dataset.act];if(fn)fn(t);
+});
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(form&&t.dataset.f){form[t.dataset.f]=t.value}
+  if(aform&&t.dataset.a){aform[t.dataset.a]=t.value}
+  if(dform&&t.dataset.d){dform[t.dataset.d]=t.type==='checkbox'?t.checked:t.value}
+});
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(dform&&t.dataset.d&&t.type==='checkbox')dform[t.dataset.d]=t.checked;
+  if(t.id==='rfile'&&t.files&&t.files[0]){
+    var r=new FileReader();r.onload=function(){restoreFrom(String(r.result))};r.readAsText(t.files[0]);t.value='';
+  }
+});
+render();
+/* test hook */
+window.__wallet={get S(){return S},balance:balance,stats:stats,render:render,A:A,ui:ui};
+})();
+</script>
